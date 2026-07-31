@@ -34,7 +34,7 @@ components\zKeybind.lua
 components\zCooldowns.lua
 components\zCastbar.lua
 components\zCalc.lua
---components\zTicTac.lua
+# components\zTicTac.lua
 components\zInstaCast.lua
 components\zMiniMap.lua
 components\zRingMenu.lua
@@ -63,7 +63,7 @@ components\zTurtleCompatibility.lua
 skins\actionbuttons.lua
 skins\bag.lua
 skins\tip.lua
---skins\chatballoon.lua
+# skins\chatballoon.lua
 skins\theme.lua
 
 

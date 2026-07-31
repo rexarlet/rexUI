@@ -64,7 +64,8 @@ zUI:RegisterComponent("zEqcompare", function ()
         local text = widget:GetText()
         if text and not string.find(text, "-", 1, true) then
           local start = 1
-          if startsWith(text, "\+") or startsWith(text, "\(") then start = 2 end
+          local firstChar = string.sub(text, 1, 1)
+          if firstChar == "+" or firstChar == "(" then start = 2 end
 
           local space = string.find(text, " ", 1, true)
           if space then
