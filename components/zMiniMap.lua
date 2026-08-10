@@ -287,10 +287,19 @@ zUI:RegisterComponent("zMinimapBag", function ()
 	bag:SetClampedToScreen(true);
 	bag:Hide();
 	
+	bag:SetBackdrop({
+		bgFile = "Interface\\BUTTONS\\WHITE8X8",
+		edgeFile = "Interface\\BUTTONS\\WHITE8X8",
+		edgeSize = 1,
+		insets = { left = -1, right = -1, top = -1, bottom = -1 }
+	});
+	bag:SetBackdropColor(0, 0, 0, 1.0);
+	bag:SetBackdropBorderColor(0.2, 0.2, 0.2, 1.0);
+
 	if zSkin then
 		zSkin(bag, 0);
 		if zSkinColor then
-			zSkinColor(bag, 0.2, 0.2, 0.2, 0.9);
+			zSkinColor(bag, 0.3, 0.3, 0.3, 1.0);
 		end
 	end
 
@@ -411,35 +420,48 @@ zUI:RegisterComponent("zMinimapBag", function ()
 			end
 		end
 
-		local iconSize = 24;
+		local targetBtnSize = 28;
 		local padding = 6;
 		local spacing = 4;
+		local currentX = padding;
 		local count = 0;
 
 		for _, btn in ipairs(gatheredButtons) do
 			if btn and btn.SetParent then
-				local w = btn:GetWidth() or 0;
-				local h = btn:GetHeight() or 0;
+				local w = btn:GetWidth() or 32;
+				local h = btn:GetHeight() or 32;
 				if btn:IsShown() and w > 0 and h > 0 then
+					if not btn.zUI_origScale then
+						btn.zUI_origScale = btn:GetScale() or 1;
+					end
+
+					local scaleFactor = targetBtnSize / (w > 0 and w or 32);
+					if scaleFactor > 1.2 then scaleFactor = 1.0 end
+					
 					btn:SetParent(bag);
+					btn:SetScale(btn.zUI_origScale * scaleFactor);
 					btn:ClearAllPoints();
-					btn:SetPoint("LEFT", bag, "LEFT", padding + count * (iconSize + spacing), 0);
-					btn:SetWidth(iconSize);
-					btn:SetHeight(iconSize);
+					
+					local scaledWidth = w * (btn.zUI_origScale * scaleFactor);
+					local anchorX = (currentX + (scaledWidth / 2)) / (btn.zUI_origScale * scaleFactor);
+					
+					btn:SetPoint("CENTER", bag, "LEFT", anchorX, 0);
 					btn:Show();
+
+					currentX = currentX + scaledWidth + spacing;
 					count = count + 1;
 				end
 			end
 		end
 
 		if count > 0 then
-			local totalWidth = (padding * 2) + (count * iconSize) + ((count - 1) * spacing);
-			local totalHeight = iconSize + (padding * 2);
+			local totalWidth = currentX - spacing + padding;
+			local totalHeight = targetBtnSize + (padding * 2);
 			bag:SetWidth(totalWidth);
 			bag:SetHeight(totalHeight);
 		else
 			bag:SetWidth(100);
-			bag:SetHeight(iconSize + (padding * 2));
+			bag:SetHeight(targetBtnSize + (padding * 2));
 		end
 	end
 
