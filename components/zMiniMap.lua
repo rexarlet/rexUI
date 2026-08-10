@@ -277,3 +277,162 @@ end
 --end
 
 end)
+
+-- Addon Minimap Button Collector Component for rexUI
+zUI:RegisterComponent("zMinimapBag", function ()
+	zUI.zMinimapBag = CreateFrame("Frame", "zMinimapBagBar", UIParent);
+	local bag = zUI.zMinimapBag;
+	
+	bag:SetFrameStrata("HIGH");
+	bag:SetClampedToScreen(true);
+	bag:Hide();
+	
+	if zSkin then
+		zSkin(bag, 0);
+		if zSkinColor then
+			zSkinColor(bag, 0.2, 0.2, 0.2, 0.9);
+		end
+	end
+
+	local ignoreFrames = {
+		["Minimap"] = true,
+		["MinimapCluster"] = true,
+		["MinimapBorder"] = true,
+		["MinimapBorderTop"] = true,
+		["MinimapZoneText"] = true,
+		["MinimapZoneTextButton"] = true,
+		["MinimapToggleButton"] = true,
+		["MinimapZoomIn"] = true,
+		["MinimapZoomOut"] = true,
+		["MinimapBackdrop"] = true,
+		["MiniMapTrackingFrame"] = true,
+		["MiniMapTracking"] = true,
+		["MiniMapTrackingButton"] = true,
+		["MiniMapTrackingBorder"] = true,
+		["MiniMapMailFrame"] = true,
+		["MiniMapMailIcon"] = true,
+		["MiniMapMailBorder"] = true,
+		["MiniMapBattlefieldFrame"] = true,
+		["MiniMapBattlefieldIcon"] = true,
+		["MiniMapBattlefieldBorder"] = true,
+		["MiniMapMeetingStoneFrame"] = true,
+		["MiniMapPing"] = true,
+		["GameTimeFrame"] = true,
+		["TimeManagerMinimapButton"] = true,
+		["FeedbackUIButton"] = true,
+		["MinimapVoiceChatFrame"] = true,
+		["MiniMapWorldMapButton"] = true,
+		["GuildInstanceDifficulty"] = true,
+		["MiniMapLFGFrame"] = true,
+		["MiniMapRecordingButton"] = true,
+		["zMiniMapButtonFrame"] = true,
+		["zMiniMapButton"] = true,
+		["zClockButton"] = true,
+		["zClockText"] = true,
+		["zMinimapSquared"] = true,
+		["zMinimapBagBar"] = true,
+	};
+
+	local gatheredButtons = {};
+
+	local function IsMinimapButton(frame)
+		if not frame or not frame.IsObjectType then return false end
+		local name = frame:GetName();
+		if name and ignoreFrames[name] then return false end
+
+		local isButton = frame:IsObjectType("Button") or frame:IsObjectType("Frame");
+		if not isButton then return false end
+
+		local parent = frame:GetParent();
+		local parentName = parent and parent:GetName();
+		local isMinimapParent = (parent == Minimap or parent == MinimapCluster or parentName == "Minimap" or parentName == "MinimapCluster");
+
+		if isMinimapParent then
+			return true;
+		end
+
+		if name then
+			local lowerName = string.lower(name);
+			if (string.find(lowerName, "minimap") or string.find(lowerName, "libdbicon") or string.find(lowerName, "mbb"))
+			   and not ignoreFrames[name] then
+				return true;
+			end
+		end
+
+		return false;
+	end
+
+	function zUI:GatherMinimapButtons()
+		local children = { Minimap:GetChildren() };
+		if MinimapCluster then
+			local mcChildren = { MinimapCluster:GetChildren() };
+			for _, child in ipairs(mcChildren) do
+				table.insert(children, child);
+			end
+		end
+
+		for _, child in ipairs(children) do
+			if IsMinimapButton(child) then
+				local alreadyAdded = false;
+				for _, b in ipairs(gatheredButtons) do
+					if b == child then
+						alreadyAdded = true;
+						break;
+					end
+				end
+				if not alreadyAdded then
+					table.insert(gatheredButtons, child);
+				end
+			end
+		end
+
+		local iconSize = 24;
+		local padding = 6;
+		local spacing = 4;
+		local count = 0;
+
+		for _, btn in ipairs(gatheredButtons) do
+			if btn and btn.SetParent then
+				btn:SetParent(bag);
+				btn:ClearAllPoints();
+				btn:SetPoint("LEFT", bag, "LEFT", padding + count * (iconSize + spacing), 0);
+				btn:SetWidth(iconSize);
+				btn:SetHeight(iconSize);
+				btn:Show();
+				count = count + 1;
+			end
+		end
+
+		if count > 0 then
+			local totalWidth = (padding * 2) + (count * iconSize) + ((count - 1) * spacing);
+			local totalHeight = iconSize + (padding * 2);
+			bag:SetWidth(totalWidth);
+			bag:SetHeight(totalHeight);
+		else
+			bag:SetWidth(100);
+			bag:SetHeight(iconSize + (padding * 2));
+		end
+	end
+
+	function zUI:ToggleMinimapBag()
+		if bag:IsShown() then
+			bag:Hide();
+		else
+			zUI:GatherMinimapButtons();
+			local refFrame = zMiniMapButtonFrame or Minimap;
+			bag:ClearAllPoints();
+			if refFrame then
+				bag:SetPoint("TOPRIGHT", refFrame, "BOTTOMRIGHT", 0, -4);
+			else
+				bag:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+			end
+			bag:Show();
+		end
+	end
+
+	bag:RegisterEvent("PLAYER_ENTERING_WORLD");
+	bag:RegisterEvent("ADDON_LOADED");
+	bag:SetScript("OnEvent", function()
+		zUI:GatherMinimapButtons();
+	end);
+end);
