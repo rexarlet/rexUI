@@ -319,12 +319,27 @@ zUI:RegisterComponent("zMinimapBag", function ()
 		["MiniMapPing"] = true,
 		["GameTimeFrame"] = true,
 		["TimeManagerMinimapButton"] = true,
+		["TimeManagerClockButton"] = true,
 		["FeedbackUIButton"] = true,
 		["MinimapVoiceChatFrame"] = true,
 		["MiniMapWorldMapButton"] = true,
 		["GuildInstanceDifficulty"] = true,
 		["MiniMapLFGFrame"] = true,
 		["MiniMapRecordingButton"] = true,
+		["MinimapPlayerModel"] = true,
+		["BookOfTracksFrame"] = true,
+		["GatherNote"] = true,
+		["FishingExtravaganzaMini"] = true,
+		["MiniNotePOI"] = true,
+		["RecipeRadarMinimapIcon"] = true,
+		["FWGMinimapPOI"] = true,
+		["MBB_MinimapButtonFrame"] = true,
+		["QuestieNote"] = true,
+		["MetaMap"] = true,
+		["LootLinkMinimapButton"] = true,
+		["pfMiniMapPin"] = true,
+		["Clock"] = true,
+		["Timer"] = true,
 		["zMiniMapButtonFrame"] = true,
 		["zMiniMapButton"] = true,
 		["zClockButton"] = true,
@@ -333,12 +348,26 @@ zUI:RegisterComponent("zMinimapBag", function ()
 		["zMinimapBagBar"] = true,
 	};
 
+	local ignoreSubstrings = {
+		"note", "poi", "pin", "model", "arrow", "marker", "ping"
+	};
+
 	local gatheredButtons = {};
 
 	local function IsMinimapButton(frame)
-		if not frame or not frame.IsObjectType then return false end
+		if not frame or not frame.GetName or not frame.IsObjectType then return false end
+
 		local name = frame:GetName();
-		if name and ignoreFrames[name] then return false end
+		if not name or name == "" then return false end
+
+		if ignoreFrames[name] then return false end
+
+		local lowerName = string.lower(name);
+		for _, sub in ipairs(ignoreSubstrings) do
+			if string.find(lowerName, sub) then
+				return false;
+			end
+		end
 
 		local isButton = frame:IsObjectType("Button") or frame:IsObjectType("Frame");
 		if not isButton then return false end
@@ -351,12 +380,8 @@ zUI:RegisterComponent("zMinimapBag", function ()
 			return true;
 		end
 
-		if name then
-			local lowerName = string.lower(name);
-			if (string.find(lowerName, "minimap") or string.find(lowerName, "libdbicon") or string.find(lowerName, "mbb"))
-			   and not ignoreFrames[name] then
-				return true;
-			end
+		if (string.find(lowerName, "minimap") or string.find(lowerName, "libdbicon") or string.find(lowerName, "mbb")) then
+			return true;
 		end
 
 		return false;
@@ -393,13 +418,17 @@ zUI:RegisterComponent("zMinimapBag", function ()
 
 		for _, btn in ipairs(gatheredButtons) do
 			if btn and btn.SetParent then
-				btn:SetParent(bag);
-				btn:ClearAllPoints();
-				btn:SetPoint("LEFT", bag, "LEFT", padding + count * (iconSize + spacing), 0);
-				btn:SetWidth(iconSize);
-				btn:SetHeight(iconSize);
-				btn:Show();
-				count = count + 1;
+				local w = btn:GetWidth() or 0;
+				local h = btn:GetHeight() or 0;
+				if btn:IsShown() and w > 0 and h > 0 then
+					btn:SetParent(bag);
+					btn:ClearAllPoints();
+					btn:SetPoint("LEFT", bag, "LEFT", padding + count * (iconSize + spacing), 0);
+					btn:SetWidth(iconSize);
+					btn:SetHeight(iconSize);
+					btn:Show();
+					count = count + 1;
+				end
 			end
 		end
 
