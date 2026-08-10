@@ -97,7 +97,25 @@ local function zToggleCalendar()
 	local calCmd = SlashCmdList and (SlashCmdList["CALENDAR"] or SlashCmdList["Calendar"] or SlashCmdList["calendar"] or SlashCmdList["TOGGLECALENDAR"]);
 	if calCmd then
 		calCmd("");
-	elseif ToggleCalendar then
+		return;
+	end
+
+	if hash_SlashCmdList then
+		local calHash = hash_SlashCmdList["/CALENDAR"] or hash_SlashCmdList["/calendar"];
+		if calHash then
+			calHash("");
+			return;
+		end
+	end
+
+	local editBox = ChatFrameEditBox or (DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.editBox);
+	if editBox and ChatEdit_SendText then
+		editBox:SetText("/calendar");
+		ChatEdit_SendText(editBox, 0);
+		return;
+	end
+
+	if ToggleCalendar then
 		ToggleCalendar();
 	elseif Calendar_LoadUI then
 		Calendar_LoadUI();
@@ -118,10 +136,11 @@ local function zToggleCalendar()
 		end
 	elseif GameTimeFrame_OnClick then
 		GameTimeFrame_OnClick(GameTimeFrame or this);
-	elseif GameTimeFrame and GameTimeFrame:GetScript("OnClick") then
-		GameTimeFrame:GetScript("OnClick")(GameTimeFrame or this);
 	elseif GameTimeFrame then
-		if GameTimeFrame:IsShown() then
+		local ok, script = pcall(function() return GameTimeFrame:GetScript("OnClick") end);
+		if ok and script then
+			script(GameTimeFrame or this);
+		elseif GameTimeFrame:IsShown() then
 			GameTimeFrame:Hide();
 		else
 			GameTimeFrame:Show();
