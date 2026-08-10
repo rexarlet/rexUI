@@ -1,8 +1,8 @@
 -- Option frame system credits to Shagu, pfUI
 zUI:RegisterComponent("zOptions", function ()
 
-ZUI_MINIMAPBUTTON_LINE1 = "Click to toggle Options"
-ZUI_MINIMAPBUTTON_LINE2 = "Right-click and drag"
+ZUI_MINIMAPBUTTON_LINE1 = "Left-click: Toggle Addon Buttons"
+ZUI_MINIMAPBUTTON_LINE2 = "Right-click: Open rexUI Options (Drag to Move)"
 
 zUI.MinimapButtonFrame = CreateFrame("frame", "zMiniMapButtonFrame", Minimap);
 zMiniMapButtonFrame:EnableMouse(true);
@@ -38,13 +38,23 @@ zMiniMapButton:SetScript("OnUpdate", function()
 end)
 
 zMiniMapButton:SetScript("OnClick", function()
-	if arg1=="LeftButton" then
-		if zUI.gui:IsShown() then
-			zUI.gui:Hide()
+	if arg1 == "LeftButton" then
+		if zUI.ToggleMinimapBag then
+			zUI:ToggleMinimapBag();
 		else
-			zUI.gui:Show()
+			if zUI.gui:IsShown() then
+				zUI.gui:Hide();
+			else
+				zUI.gui:Show();
+			end
 		end
-    end
+	elseif arg1 == "RightButton" then
+		if zUI.gui:IsShown() then
+			zUI.gui:Hide();
+		else
+			zUI.gui:Show();
+		end
+	end
 end)
 
 zMiniMapButton:SetScript("OnEnter", function()
