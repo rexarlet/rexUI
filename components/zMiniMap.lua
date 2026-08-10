@@ -58,94 +58,88 @@ MinimapZoneText:ClearAllPoints()
 MinimapZoneText:SetPoint('TOP', Minimap, 0, 17)
 MinimapZoneText:SetFont(STANDARD_TEXT_FONT, 10, 'OUTLINE')
 
-zUI.zClock = CreateFrame("Frame", nil, UIParent); -- MonkeyClock inspired
-zClockText = zUI.zClock:CreateFontString("zClockText", "BACKGROUND");
+zUI.zClock = CreateFrame("Button", "zClockButton", Minimap);
+zUI.zClock:SetWidth(60);
+zUI.zClock:SetHeight(16);
+zUI.zClock:SetPoint('BOTTOM', Minimap, -2, -8);
+
+zClockText = zUI.zClock:CreateFontString("zClockText", "OVERLAY");
 zClockText:SetFont(STANDARD_TEXT_FONT, 10, 'OUTLINE');
---TODO: let user set clock text color.
---zClockText:SetTextColor(1,0.8196079,0); -- yellow wow default
-zClockText:SetTextColor(1,1,1);
+zClockText:SetTextColor(1, 1, 1);
+zClockText:SetPoint('CENTER', zUI.zClock, 'CENTER', 0, 0);
 
-zClockText:SetPoint('BOTTOM', Minimap, -2, -8)
-local zdeltaTime = 6;
+local zdeltaTime = 1;
+local clockMode = "LOCAL"; -- "LOCAL" or "SERVER"
 
---zClockText:SetText("1:11"); --test
+local function zClock_UpdateDisplay()
+	if clockMode == "SERVER" then
+		local sHour, sMin = GetGameTime();
+		zClockText:SetText(format("%02d:%02d", sHour, sMin));
+	else
+		zClockText:SetText(date("%H:%M"));
+	end
+end
+
 zUI.zClock:SetScript("OnUpdate", function()
-	local elapsed = arg1;
+	local elapsed = arg1 or 0;
 	zdeltaTime = zdeltaTime + elapsed;
 
-	if(zdeltaTime >= 6.0) then -- updates only every 6 seconds, I dont care for exact time atm
-		--zClockText:SetText(zClock_GetTimeText());
-		zClockText:SetText(date("%H:%M"));	--options needed
+	if (zdeltaTime >= 1.0) then
+		zClock_UpdateDisplay();
 		zdeltaTime = 0;
 	end
+end);
+
+zUI.zClock:EnableMouse(true);
+zUI.zClock:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+
+zUI.zClock:SetScript("OnEnter", function()
+	GameTooltip:SetOwner(this, "ANCHOR_BOTTOMLEFT");
 	
-end)
---[[ date returns
-%a	abbreviated weekday name (e.g., Wed)
-%A	full weekday name (e.g., Wednesday)
-%b	abbreviated month name (e.g., Sep)
-%B	full month name (e.g., September)
-%c	date and time (e.g., 09/16/98 23:48:10)
-%d	day of the month (16) [01-31]
-%H	hour, using a 24-hour clock (23) [00-23]
-%I	hour, using a 12-hour clock (11) [01-12]
-%M	minute (48) [00-59]
-%m	month (09) [01-12]
-%p	either "am" or "pm" (pm)
-%S	second (10) [00-61]
-%w	weekday (3) [0-6 = Sunday-Saturday]
-%x	date (e.g., 09/16/98)
-%X	time (e.g., 23:48:10)
-%Y	full year (1998)
-%y	two-digit year (98) [00-99]
-%%	the character `%�
-]]
--- This function returns the time in a human readable string
-function zClock_GetTimeText()
-	local iHour, iMinute = GetGameTime() -- server time..
-	local time = date("%I:%M %p"); -- local time with AM or PM
-	--local bPM
-	
-	-- offset the local time from server time
-	--iHour --= iHour + MonkeyClockVars.hourOffset.value
-	--iMinute --= iMinute + MonkeyClockVars.minuteOffset.value
-	
-	-- fix up the hours and mins
-	if (iMinute > 59) then
-		iMinute = iMinute - 60
-		iHour = iHour + 1
-	elseif (iMinute < 0) then
-		iMinute = 60 + iMinute
-		iHour = iHour - 1
-	end
-	if (iHour > 23) then
-		iHour = iHour - 24
-	elseif (iHour < 0) then
-		iHour = 24 + iHour
-	end
-	
-	-- format the return string according to config settings
-	--if (MonkeyClockVars.use24) then
-	return format(TIME_TWENTYFOURHOURS, iHour, iMinute)
-	--[[
+	local sHour, sMin = GetGameTime();
+	local sTime = format("%02d:%02d", sHour, sMin);
+	local lTime = date("%H:%M");
+	local dStr = date("%A, %d %B %Y");
+
+	GameTooltip:AddLine("Zaman & Saat Bilgisi", 1, 0.82, 0);
+	GameTooltip:AddDoubleLine("Yerel Saat (Local):", lTime, 1, 1, 1, 1, 1, 1);
+	GameTooltip:AddDoubleLine("Sunucu Saati (Server):", sTime, 1, 1, 1, 1, 1, 1);
+	GameTooltip:AddDoubleLine("Tarih:", dStr, 1, 1, 0.8, 1, 1, 0.8);
+	GameTooltip:AddLine(" ", 1, 1, 1);
+	GameTooltip:AddLine("Sol Tık: Yerel / Sunucu saati arasında geçiş yap", 0.7, 0.7, 0.7);
+	GameTooltip:AddLine("Sağ Tık: Varsayılan Takvim / Saat Penceresini Aç", 0.7, 0.7, 0.7);
+
+	GameTooltip:Show();
+end);
+
+zUI.zClock:SetScript("OnLeave", function()
+	GameTooltip:Hide();
+end);
+
+zUI.zClock:SetScript("OnClick", function()
+	if arg1 == "RightButton" then
+		if GameTimeFrame_OnClick then
+			GameTimeFrame_OnClick(this);
+		elseif ToggleCalendar then
+			ToggleCalendar();
+		elseif GameTimeFrame and GameTimeFrame:GetScript("OnClick") then
+			GameTimeFrame:GetScript("OnClick")();
+		elseif GameTimeFrame then
+			if GameTimeFrame:IsShown() then
+				GameTimeFrame:Hide();
+			else
+				GameTimeFrame:Show();
+			end
+		end
 	else
-		if (iHour >= 12) then
-			bPM = 1
-			iHour = iHour - 12
+		if clockMode == "LOCAL" then
+			clockMode = "SERVER"
 		else
-			bPM = 0
+			clockMode = "LOCAL"
 		end
-		if (iHour == 0) then
-			iHour = 12
-		end
-		if (bPM == 1) then
-			return format(TIME_TWELVEHOURPM, iHour, iMinute)
-		else
-			return format(TIME_TWELVEHOURAM, iHour, iMinute)
-		end
+		zClock_UpdateDisplay();
 	end
-	]]
-end
+end);
 --zUI.zClock:SetScript("OnShow", function(self)
 --	zdeltaTime = 0;
 --end)
@@ -211,7 +205,7 @@ if (C.minimap.square == "1") then
 	Minimap:SetFrameLevel(1);
 	Minimap:SetMaskTexture("Interface\\AddOns\\rexUI\\img\\minimap");
 	
-	zClockText:SetPoint('BOTTOM', Minimap, 0, 3);
+	zUI.zClock:SetPoint('BOTTOM', Minimap, 0, 3);
 	MinimapZoneText:SetPoint('TOP', Minimap, 0, -2);
 	MinimapZoneText:SetDrawLayer("OVERLAY");
 	MinimapZoneText:SetNonSpaceWrap(false);
