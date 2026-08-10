@@ -830,7 +830,7 @@ end
 			this.bugs:SetPoint("TOPLEFT", 80, -180)
 			this.bugs:SetWidth(300)
 			this.bugs:SetJustifyH("LEFT")
-			this.bugs:SetText("If you find any bugs, please report them to the addon issues section on the github page.")
+			this.bugs:SetText("This is a vibecoded fork of the zui addon for the personal use.")
 			
 			local gitlab = CreateFrame("Button", nil, this, "UIPanelButtonTemplate")
 			gitlab:SetPoint("TOPLEFT", 160, -225)

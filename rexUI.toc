@@ -1,5 +1,5 @@
 ## Interface: 11200
-## Title: |cffffd200rex|cff808080UI 
+## Title: |cff00a2ffrex|cff808080UI 
 ## Author: Ko0zi, Shagu, Modernist, Shirsig and Road-block
 ## Notes: A UI that aims to preserve the blizzard look/design but with a modern touch and with some nice features added.
 ## Version: 0.2.8
