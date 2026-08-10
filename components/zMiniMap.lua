@@ -93,6 +93,42 @@ end);
 zUI.zClock:EnableMouse(true);
 zUI.zClock:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 
+local function zToggleCalendar()
+	local calCmd = SlashCmdList and (SlashCmdList["CALENDAR"] or SlashCmdList["Calendar"] or SlashCmdList["calendar"] or SlashCmdList["TOGGLECALENDAR"]);
+	if calCmd then
+		calCmd("");
+	elseif ToggleCalendar then
+		ToggleCalendar();
+	elseif Calendar_LoadUI then
+		Calendar_LoadUI();
+		if ToggleCalendar then
+			ToggleCalendar();
+		elseif CalendarFrame then
+			if CalendarFrame:IsShown() then
+				CalendarFrame:Hide();
+			else
+				CalendarFrame:Show();
+			end
+		end
+	elseif CalendarFrame then
+		if CalendarFrame:IsShown() then
+			CalendarFrame:Hide();
+		else
+			CalendarFrame:Show();
+		end
+	elseif GameTimeFrame_OnClick then
+		GameTimeFrame_OnClick(GameTimeFrame or this);
+	elseif GameTimeFrame and GameTimeFrame:GetScript("OnClick") then
+		GameTimeFrame:GetScript("OnClick")(GameTimeFrame or this);
+	elseif GameTimeFrame then
+		if GameTimeFrame:IsShown() then
+			GameTimeFrame:Hide();
+		else
+			GameTimeFrame:Show();
+		end
+	end
+end
+
 zUI.zClock:SetScript("OnEnter", function()
 	GameTooltip:SetOwner(this, "ANCHOR_BOTTOMLEFT");
 	
@@ -101,13 +137,13 @@ zUI.zClock:SetScript("OnEnter", function()
 	local lTime = date("%H:%M");
 	local dStr = date("%A, %d %B %Y");
 
-	GameTooltip:AddLine("Zaman & Saat Bilgisi", 1, 0.82, 0);
-	GameTooltip:AddDoubleLine("Yerel Saat (Local):", lTime, 1, 1, 1, 1, 1, 1);
-	GameTooltip:AddDoubleLine("Sunucu Saati (Server):", sTime, 1, 1, 1, 1, 1, 1);
-	GameTooltip:AddDoubleLine("Tarih:", dStr, 1, 1, 0.8, 1, 1, 0.8);
+	GameTooltip:AddLine("Time & Date Info", 1, 0.82, 0);
+	GameTooltip:AddDoubleLine("Local Time:", lTime, 1, 1, 1, 1, 1, 1);
+	GameTooltip:AddDoubleLine("Server Time:", sTime, 1, 1, 1, 1, 1, 1);
+	GameTooltip:AddDoubleLine("Date:", dStr, 1, 1, 0.8, 1, 1, 0.8);
 	GameTooltip:AddLine(" ", 1, 1, 1);
-	GameTooltip:AddLine("Sol Tık: Yerel / Sunucu saati arasında geçiş yap", 0.7, 0.7, 0.7);
-	GameTooltip:AddLine("Sağ Tık: Varsayılan Takvim / Saat Penceresini Aç", 0.7, 0.7, 0.7);
+	GameTooltip:AddLine("Left Click: Toggle Local / Server time", 0.7, 0.7, 0.7);
+	GameTooltip:AddLine("Right Click: Open Calendar / Clock Window", 0.7, 0.7, 0.7);
 
 	GameTooltip:Show();
 end);
@@ -118,19 +154,7 @@ end);
 
 zUI.zClock:SetScript("OnClick", function()
 	if arg1 == "RightButton" then
-		if GameTimeFrame_OnClick then
-			GameTimeFrame_OnClick(this);
-		elseif ToggleCalendar then
-			ToggleCalendar();
-		elseif GameTimeFrame and GameTimeFrame:GetScript("OnClick") then
-			GameTimeFrame:GetScript("OnClick")();
-		elseif GameTimeFrame then
-			if GameTimeFrame:IsShown() then
-				GameTimeFrame:Hide();
-			else
-				GameTimeFrame:Show();
-			end
-		end
+		zToggleCalendar();
 	else
 		if clockMode == "LOCAL" then
 			clockMode = "SERVER"
